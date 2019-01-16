@@ -29,7 +29,7 @@ class Model:
 
     def backward_pass(self, y):
         self.loss_func.calc(y)
-        dL_dy = self.loss_func.derivative()
+        dL_dy = self.loss_func.derivative(y)
         for layer in self.layers:
             dL_dW, dL_db = layer.param_gradients(dL_dy)
             layer.W -= self.epsilon * dL_dW

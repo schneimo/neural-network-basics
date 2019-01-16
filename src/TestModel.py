@@ -1,4 +1,4 @@
-from Model import *
+from src.Model import *
 
 if __name__ == '__main__':
     model = Model()
@@ -11,6 +11,6 @@ if __name__ == '__main__':
 
     x = np.asarray([1, 2, 3, 4, 5])
     y = [1, 0, 0]
-    model.train(x, y)
+    model.train(zip([x],[y]))
     print(y)
     print(sum(y))

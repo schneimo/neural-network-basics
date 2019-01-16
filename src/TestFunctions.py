@@ -1,4 +1,4 @@
-from Model import *
+from src.Model import *
 
 if __name__ == '__main__':
     layer1 = Dense((3, 2), Relu(), XavierInit())
