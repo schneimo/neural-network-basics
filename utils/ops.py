@@ -1,82 +1,96 @@
 import numpy as np
 
+# Method which calculates the padding based on the specified output shape and the
+# shape of the filters
+def determine_padding(filter_shape, output_shape="same"):
 
-def conv2D(input, weights, biases, stride=1, padding='SAME'):
-    """Convolutional layer with filter size 3x3 and 'same' padding.
-        `x` is a NumPy array of shape [height, width, n_features_in]
-        `weights` has shape [3, 3, n_features_in, n_features_out]
-        `biases` has shape [n_features_out]
-        Return the output of the 3x3 conv (without activation)
-        """
+    # No padding
+    if output_shape == "valid":
+        return (0, 0), (0, 0)
+    # Pad so that the output shape is the same as input shape (given that stride=1)
+    elif output_shape == "same":
+        filter_height, filter_width = filter_shape
 
-    """
-    This is an implementation which should be work similar like TensorFlow. As far as I know it uses
-    a Toeplitz matrix to perform the convolution as a dot product, what is also called im2col.
-    https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/nn/conv2d
-    """
-    in_height, in_width, channels = input.shape
-    filter_height, filter_width, n_features_in, n_features_out = weights.shape
+        # Derived from:
+        # output_height = (height + pad_h - filter_height) / stride + 1
+        # In this case output_height = height and stride = 1. This gives the
+        # expression for the padding below.
+        pad_h1 = int(np.floor((filter_height - 1)/2))
+        pad_h2 = int(np.ceil((filter_height - 1)/2))
+        pad_w1 = int(np.floor((filter_width - 1)/2))
+        pad_w2 = int(np.ceil((filter_width - 1)/2))
 
-    out_height = in_height
-    out_width = in_width
+        return (pad_h1, pad_h2), (pad_w1, pad_w2)
 
-    # padding = "same", this means in_height = out_height & in_width = out_width
-    pad = ((out_height - 1) * stride + filter_height - in_height) // 2
+# Reference: CS231n Stanford
+def get_im2col_indices(images_shape, filter_shape, padding, stride=1):
+    # First figure out what the size of the output should be
+    batch_size, channels, height, width = images_shape
+    filter_height, filter_width = filter_shape
+    pad_h, pad_w = padding
+    out_height = int((height + np.sum(pad_h) - filter_height) / stride + 1)
+    out_width = int((width + np.sum(pad_w) - filter_width) / stride + 1)
 
-    paddings = np.array([[pad, pad], [pad, pad], [0, 0]])
-    x_padded = np.pad(input, paddings, 'constant')
+    i0 = np.repeat(np.arange(filter_height), filter_width)
+    i0 = np.tile(i0, channels)
+    i1 = stride * np.repeat(np.arange(out_height), out_width)
+    j0 = np.tile(np.arange(filter_width), filter_height * channels)
+    j1 = stride * np.tile(np.arange(out_width), out_height)
+    i = i0.reshape(-1, 1) + i1.reshape(1, -1)
+    j = j0.reshape(-1, 1) + j1.reshape(1, -1)
 
-    """
-    From Tensorflow 2 doc: https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/nn/conv2d
-    Given an input tensor of shape [batch, in_height, in_width, in_channels] and a filter / kernel tensor 
-    of shape [filter_height, filter_width, in_channels, out_channels], this op performs the following:
+    k = np.repeat(np.arange(channels), filter_height * filter_width).reshape(-1, 1)
 
-    1. Flattens the filter to a 2-D matrix 
-       with shape [filter_height * filter_width * in_channels, output_channels].
-
-    2. Extracts image patches from the input tensor to form a virtual tensor of 
-       shape [batch, out_height, out_width, filter_height * filter_width * in_channels].
-
-    3. For each patch, right-multiplies the filter matrix and the image patch vector.
-    """
-    # In other words this means:
-    # Calculate and use Toplitz-matrix to perform the convolution as simple dot-product like TF does (im2col).
-    # The convolution/weight tensor gets flattend and from the padded input tensor, we extract so called image patches.
-    # Image patches means, that we take the regions where convolution is performed in the for-loop otherwise and stack
-    # them together into a large vector. To be able to perform a simple dot-product we have to reshape this vector
-    # into a matrix.
-
-    weights_flat = np.reshape(weights, [filter_height * filter_width * n_features_in, n_features_out])
-
-    windows = []
-    for y in range(out_height):
-        for x in range(out_width):
-            k, l = y * stride, x * stride
-            window = x_padded[k: k + filter_height, l: l + filter_width, :]
-            windows.append(window)
-    stacked = np.stack(windows)
-    x_patched = np.reshape(stacked, [-1, n_features_in * filter_width * filter_height])
-
-    result = np.matmul(x_patched, weights_flat) + biases
-    result = np.reshape(result, [out_height, out_width, n_features_out])
-
-    return result
+    return (k, i, j)
 
 
-def max_pool(input, pool_size=2, stride=2):
-    """Max pooling with pool size 2x2 and stride 2.
-    `input` is a numpy array of shape [height, width, n_features]
-    """
-    input_height, input_width, channels = input.shape
+# Method which turns the image shaped input to column shape.
+# Used during the forward pass of a convolution.
+# Reference: CS231n Stanford
+def image_to_column(images, filter_shape, stride, output_shape='same'):
+    filter_height, filter_width = filter_shape
 
-    output_height = (input_height - pool_size)//stride + 1
-    output_width = (input_width - pool_size)//stride + 1
+    pad_h, pad_w = determine_padding(filter_shape, output_shape)
 
-    result = np.zeros((output_height, output_width, channels))
-    for c in range(channels):
-        for i in range(output_height):
-            for j in range(output_width):
-                k, l = i*stride, j*stride
-                result[i, j, c] = input[k: (k + pool_size), l: (l + pool_size), c].max()
+    # Add padding to the image
+    images_padded = np.pad(images, ((0, 0), (0, 0), pad_h, pad_w), mode='constant')
 
-    return result
+    # Calculate the indices where the dot products are to be applied between weights
+    # and the image
+    k, i, j = get_im2col_indices(images.shape, filter_shape, (pad_h, pad_w), stride)
+
+    # Get content from image at those indices
+    cols = images_padded[:, k, i, j]
+    channels = images.shape[1]
+    # Reshape content into column shape
+    cols = cols.transpose(1, 2, 0).reshape(filter_height * filter_width * channels, -1)
+    return cols
+
+
+
+# Method which turns the column shaped input to image shape.
+# Used during the backward pass of a convolution.
+# Reference: CS231n Stanford
+def column_to_image(cols, images_shape, filter_shape, stride, output_shape='same'):
+    batch_size, channels, height, width = images_shape
+    pad_h, pad_w = determine_padding(filter_shape, output_shape)
+    height_padded = height + np.sum(pad_h)
+    width_padded = width + np.sum(pad_w)
+    images_padded = np.empty((batch_size, channels, height_padded, width_padded))
+
+    # Calculate the indices where the dot products are applied between weights
+    # and the image
+    k, i, j = get_im2col_indices(images_shape, filter_shape, (pad_h, pad_w), stride)
+
+    cols = cols.reshape(channels * np.prod(filter_shape), -1, batch_size)
+    cols = cols.transpose(2, 0, 1)
+    # Add column content to the images at the indices
+    np.add.at(images_padded, (slice(None), k, i, j), cols)
+
+    # Return image without padding
+    return images_padded[:, :, pad_h[0]:height+pad_h[0], pad_w[0]:width+pad_w[0]]
+
+
+def softmax(x):
+    exp_scores = np.exp(x)
+    return exp_scores / np.sum(exp_scores)

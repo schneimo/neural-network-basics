@@ -1,19 +1,18 @@
-# Simple Neural Network
-This repo contains a simple implementation of a neural network for own learning purposes implemented completly in numpy. This means, that the implementation is not as efficient as other libraries of course, but should implement some important papers in an intuitiv and easy to read way.
+# Neural Network Basics
+This repo contains a basic implementation of a neural network for own learning purposes implemented completely in numpy. This means, that the implementation is not as efficient as other libraries of course, but should implement some important papers in an intuitive and easy to read way.
+
+## Done
+- Fully Connected Layer
+- Initializations, Activations, Loss-functions
+- SGD
 
 ## WIP
-- Fully Connected Layers
-
-- Xavier Initialization
-
+- AdaGrad, RMSProp, Adam
 - Convolutional Layers
-
-## Future
-
-- RNN / LSTM
-
-- Batch Normalization
-
+- Batch-Norm
 - Dropout
 
-- ...
+## Future
+- RNN / LSTM
+- Attention mechanisms
+- Unpooling
