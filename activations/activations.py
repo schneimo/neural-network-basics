@@ -21,7 +21,7 @@ class Activation:
     def calc(self, z):
         raise NotImplementedError
 
-    def derivative(self, dL_dy):
+    def derivative(self):
         raise NotImplementedError
 
 
@@ -30,23 +30,23 @@ class Sigmoid(Activation):
 
     def calc(self, z):
         exp = np.exp(z)
-        y = self.y = 1/(1+exp)
+        y = self.y = 1. / (1. + exp)
         return y
 
-    def derivative(self, dL_dy):
+    def derivative(self):
         s = self.y
-        return s*(1-s)
+        return s * (1. - s)
 
 
 @register('relu')
 class Relu(Activation):
 
     def calc(self, z):
-        y = self.y = np.maximum(z, 0)
-        return self.y
+        y = self.y = z * (z > 0)
+        return y
 
-    def derivative(self, dL_dy):
-        d = self.y > 0
+    def derivative(self):
+        d = 1. * (self.y > 0)
         return d
 
 
@@ -54,11 +54,11 @@ class Relu(Activation):
 class Tanh(Activation):
 
     def calc(self, z):
-        y = self.y = np.tanh(z, 0)
+        y = self.y = np.tanh(z)
         return y
 
-    def derivative(self, dL_dy):
-        return 1 - self.y**2
+    def derivative(self):
+        return 1. - self.y**2
 
 
 @register('linear')
@@ -68,8 +68,8 @@ class Linear(Activation):
         y = self.y = z
         return y
 
-    def derivative(self, dL_dy):
-        return self.y @ dL_dy
+    def derivative(self):
+        return np.ones_like(self.y)
 
 
 def get_activation(name):

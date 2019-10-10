@@ -18,18 +18,22 @@ class LossFuncBase:
         return NotImplementedError
 
 
-@register('crossentropylosswithlogits')
-class CrossEntropyLossWithLogits(LossFuncBase):
+@register('crossentropy')
+class CrossEntropyLoss(LossFuncBase):
 
     def pred(self, pred_value):
         return softmax(pred_value)
 
     def calc(self, true_value, pred_value):
-        self.y = true_value * np.log(softmax(pred_value))
-        return -1 * np.sum(self.y)
+        num_examples = pred_value.shape[0]
+        loss = np.log(pred_value[range(num_examples), true_value]) / num_examples
+        return -1. * np.sum(loss)
 
-    def derivative(self, true_value):
-        return self.y - true_value
+    def derivative(self, true_value, pred_value):
+        num_examples = pred_value.shape[0]
+        pred_value[range(num_examples), true_value] -= 1
+        pred_value /= num_examples
+        return pred_value
 
 
 @register('mse')
@@ -39,11 +43,14 @@ class MeanSquaredErrorLoss(LossFuncBase):
         return pred_value
 
     def calc(self, true_value, pred_value):
-        self.y = y = 0.5*np.mean(np.square(true_value-pred_value))
-        return y
+        loss = 0.5 * np.linalg.norm(pred_value-true_value)**2
+        loss /= pred_value.size
+        return loss
 
-    def derivative(self, true_value):
-        return self.y - true_value
+    def derivative(self, true_value, pred_value):
+        diff = pred_value-true_value
+        diff /= pred_value.shape[0]
+        return diff
 
 
 def get_loss(name):

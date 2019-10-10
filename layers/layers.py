@@ -6,9 +6,10 @@ from utils import image_to_column, column_to_image, determine_padding
 
 class Layer:
 
-    def __init__(self, activation, initializer):
+    def __init__(self, activation, initializer, regularization=0.0):
         self.train = True
         self._optimizer = None
+        self.reg = regularization
         self.add_activation(activation)
         self.add_initializer(initializer)
 
@@ -21,7 +22,7 @@ class Layer:
     def backward_pass(self, dL_dy):
         raise NotImplementedError
 
-    def param_gradients(self, dL_dy):
+    def gradients(self, dL_dy):
         raise NotImplementedError
 
     def set_train(self):
@@ -41,6 +42,11 @@ class Layer:
 
 
 class Flatten(Layer):
+    """
+    Takes a multidimensional Numpy-Array as input and returns a vectorized form of it
+    to pass it to a fully connected/dense layer
+
+    """
     pass
 
 
@@ -52,7 +58,6 @@ class Dense(Layer):
     The output is computed as follow:
         z = x dot W + b
         y = activation(z)
-        dy/dz*dz/dW
 
         x should have shape of (batch_size, #inputs == #units)
         y should have shape of (batch_size, #outputs)
@@ -68,15 +73,11 @@ class Dense(Layer):
     def __repr__(self):
         return f"Dense Layer {self.W.shape}"
 
-    def dL_dx(self, dL_dy):
-        dL_dz = self._activation.derivative(dL_dy)
-        return dL_dz @ self.W.T
-
-    def __init__(self, input_size, output_size, activation='linear', initializer='glorot'):
-        super().__init__(activation=activation, initializer=initializer)
-        self.b = self._initializer((1, output_size))  # weight shape: (output_size)
+    def __init__(self, input_size, output_size, activation='linear', initializer='glorot', regularization=0.0):
+        super().__init__(activation=activation, initializer=initializer, regularization=regularization)
+        self.b = self._initializer((1, output_size))  # weight shape: (output_size, )
         self.W = self._initializer((input_size, output_size))  # weight shape: (input_size, output_size)
-        self.X = None  # Save the input batch tensor
+        self.X = None  # Placeholder to save the input batch tensor
 
     def forward_pass(self, x):
         self.X = x
@@ -84,29 +85,31 @@ class Dense(Layer):
         y = self._activation.calc(z=z)
         return y
 
-    def backward_pass(self, dL_dy, lr=0.001):
+    def backward_pass(self, dL_dy):
         """
         Arguments:
             dL_dy: Gradient tensor of the next layer
             lr: Learning rate to use to update weights and biases
         """
         assert self.train, 'Layer not set to train!'
-        assert self.X is not None, 'There was no forward pass before'
+        assert self.X is not None, 'No forward pass before!'
 
-        dx = self.dx = self.dL_dx(dL_dy)
-        dw, db = self.param_gradients(dL_dy)
-        # TODO: Passing gradients to optimizer and update parameters
-        # TODO: Updating of the parameters in upper class with parameters dict
+        dx, dw, db = self.gradients(dL_dy)
 
-        self.W += self._optimizer(dw, self.W)
-        self.b += self._optimizer(db, self.b)
+        dw += self.reg * self.W
+        db += self.reg * self.b
+
+        self.W -= self._optimizer(dw, self.W)
+        self.b -= self._optimizer(db, self.b)
 
         return dx
 
-    def param_gradients(self, dL_dy):
-        dw = self.dx.T @ self._activation.derivative(dL_dy)
-        db = self._activation.derivative(dL_dy).sum(axis=0, keepdims=True)
-        return dw, db
+    def gradients(self, dL_dy):
+        dL_dz = dL_dy * self._activation.derivative()
+        dL_dx = dL_dz @ self.W.T
+        dL_dw = self.X.T @ dL_dz
+        dL_db = np.sum(dL_dz, axis=0, keepdims=True)
+        return dL_dx, dL_dw, dL_db
 
 
 class Conv2D(Layer):

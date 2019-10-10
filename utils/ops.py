@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # Method which calculates the padding based on the specified output shape and the
 # shape of the filters
 def determine_padding(filter_shape, output_shape="same"):
@@ -21,6 +22,7 @@ def determine_padding(filter_shape, output_shape="same"):
         pad_w2 = int(np.ceil((filter_width - 1)/2))
 
         return (pad_h1, pad_h2), (pad_w1, pad_w2)
+
 
 # Reference: CS231n Stanford
 def get_im2col_indices(images_shape, filter_shape, padding, stride=1):
@@ -93,4 +95,5 @@ def column_to_image(cols, images_shape, filter_shape, stride, output_shape='same
 
 def softmax(x):
     exp_scores = np.exp(x)
-    return exp_scores / np.sum(exp_scores)
+    probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+    return probs

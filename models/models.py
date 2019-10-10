@@ -4,7 +4,7 @@ from loss import get_loss
 
 class Model:
 
-    def __init__(self, layers=None, optimizer='glorot', loss='mse', lr=0.001):
+    def __init__(self, layers=None, optimizer='xavier', loss='mse', lr=0.001):
         self.layers = list() if layers is None else layers
         self._train = True
         self.add_loss(loss)
@@ -41,10 +41,11 @@ class Model:
     def backward_pass(self, true_value, pred_value):
         assert self._train, 'Network not set to train!'
 
-        self._loss_func.calc(true_value, pred_value)
-        dL_dy = self._loss_func.derivative(true_value)
+        loss = self._loss_func.calc(true_value, pred_value)
+        dL_dy = self._loss_func.derivative(true_value, pred_value)
         for layer in reversed(self.layers):
             dL_dy = layer.backward_pass(dL_dy)
+        return loss
 
     def set_train(self):
         self._train = True
@@ -56,9 +57,8 @@ class Model:
         for layer in self.layers:
             layer.set_eval()
 
-    def train(self, data):
-        for idx, (x, y) in enumerate(data):
-            # TODO: Minibatches and shuffling, etc....
-            pred = self.forward_pass(x)
-            self.backward_pass(y, pred)
+    def train(self, x, y):
+        pred = self.forward_pass(x)
+        loss = self.backward_pass(y, pred)
+        return np.mean(loss)
 
