@@ -35,10 +35,11 @@ if __name__ == '__main__':
     model = Model(loss='crossentropy')
     layer1 = Conv2D(filter_size=7, num_kernels=num_kernels, input_depth=1,
                     stride=1, dilation=0, padding='same',
-                    activation='relu', initializer='xavier', regularization=1e-3)
+                    activation='relu', initializer='xavier',
+                    regularization=1e-3)
     model.add_layer(layer1)
 
-    layer2 = MaxPool(pool_size=4, stride=1)
+    layer2 = MaxPool2D(pool_size=4, stride=1)
     model.add_layer(layer2)
 
     layer3 = Flatten
@@ -56,3 +57,5 @@ if __name__ == '__main__':
 
     optim = SGD(lr=1e-0)
     model.add_optim(optim)
+
+    # TODO: Extend example

@@ -36,15 +36,17 @@ if __name__ == '__main__':
     # Define the network
     input_size, hidden_size, output_size = D, 100, K
     model = Model(loss='crossentropy')
-    layer1 = Dense(input_size=input_size, output_size=hidden_size, activation='relu', initializer='xavier', regularization=1e-3)
+    layer1 = Dense(input_size=input_size, output_size=hidden_size,
+                   activation='relu', initializer='xavier', regularization=1e-3)
     model.add_layer(layer1)
-    layer2 = Dense(input_size=hidden_size, output_size=output_size, activation='linear', initializer='xavier', regularization=1e-3)
+    layer2 = Dense(input_size=hidden_size, output_size=output_size,
+                   activation='linear', initializer='xavier', regularization=1e-3)
     model.add_layer(layer2)
     optim = SGD(lr=1e-0)
     model.add_optim(optim)
 
     # Training
-    for i in range(15000):
+    for i in range(10000):
         # Training the network and observing the loss
         loss = model.train(X, y)
 

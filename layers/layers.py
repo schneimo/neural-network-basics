@@ -89,14 +89,14 @@ class Dense(Layer):
     """
 
     def __repr__(self):
-        return f"Dense Layer; Shape of weights: {self.W.shape}"
+        return f"Dense Layer; " \
+               f"Shape of weights: {self.W.shape}"
 
     def __init__(self, input_size, output_size,
-                 activation='linear', initializer='glorot', regularization=0.0):
+                 activation='linear', initializer='xavier', regularization=0.0):
         super().__init__(activation=activation, initializer=initializer, regularization=regularization)
         self.b = self._initializer((1, output_size))  # weight shape: (output_size, )
         self.W = self._initializer((input_size, output_size))  # weight shape: (input_depth, output_size)
-        #self.X = None  # Placeholder to save the input batch tensor
 
     def forward_pass(self, x):
         self.X = x
@@ -131,7 +131,7 @@ class Dense(Layer):
         w.r.t to the weights, biases and inputs
 
         Arguments:
-            dL_dy: Gradient tensor of the following layer
+            dL_dy: Gradient tensor from the following layer
         """
         dL_dz = dL_dy * self._activation.derivative()
         dL_dx = dL_dz @ self.W.T
@@ -169,7 +169,8 @@ class Conv2D(Layer):
         `biases` has shape [n_output_channels]
 
         """
-        #batch_size, in_height, in_width, n_in_channels = x.shape
+        # TODO: Add more comments
+        # TODO: Testing
         self.X = x
 
         z = conv2d(x, self.W, self.b, self.pad, self.stride, self.dilation)
@@ -191,7 +192,7 @@ class Conv2D(Layer):
         dw += self.reg * self.W
         db += self.reg * self.b
 
-        m = self.X.shape[0]
+        m = self.X.shape[0]  # Determine batch size
         self.W -= (1/m) * self._optimizer(dw, self.W)
         self.b -= (1/m) * self._optimizer(db, self.b)
 
@@ -205,6 +206,9 @@ class Conv2D(Layer):
         Arguments:
             dL_dy: Gradient tensor of the following layer
         """
+        # TODO: Add more comments
+        # TODO: Testing
+
         filter_height, filter_width, in_channels, out_channels = self.W.shape
         batch_size, out_height, out_width, _ = dL_dy.shape
 
@@ -219,7 +223,6 @@ class Conv2D(Layer):
         # Calculating gradient dL_dx of input x
         dL_dx = W_col @ dL_dz_col
         dL_dx = column_to_image(dL_dx, self.X.shape, self.W.shape, self.pad, self.stride, self.dilation)
-        # reshape columnized dL_dx back into the same format as the input volume
         dL_dx = dL_dx.transpose(0, 2, 3, 1)
 
         # Calculating gradient dL_dw of weights W
@@ -255,6 +258,9 @@ class MaxPool2D(Layer):
         Arguments:
             `x` is a numpy array of shape [batch_size, height, width, n_features]
         """
+        # TODO: Add more comments
+        # TODO: Testing
+
         batch_size, input_height, input_width, in_channels = x.shape
 
         output_height = (input_height - self.pool_size)//self.stride + 1
@@ -296,6 +302,9 @@ class AveragePool2D(Layer):
         Arguments:
             `x` is a numpy array of shape [batch_size, height, width, n_features]
         """
+        # TODO: Add more comments
+        # TODO: Testing
+
         self.X = x
         batch_size, input_height, input_width, in_channels = x.shape
 
@@ -314,18 +323,18 @@ class AveragePool2D(Layer):
         return result
 
     def backward_pass(self, dL_dy):
+        # TODO
         pass
 
-
+# TODO
 class BatchNorm2D(Layer):
 
     def __init__(self):
         pass
 
-
+# TODO
 class BatchNorm3D(Layer):
 
     def __init__(self):
         pass
-
 

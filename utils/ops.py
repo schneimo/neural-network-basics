@@ -121,7 +121,7 @@ def image_to_column(images, filter_shape, stride, padding, dilation, output_shap
 
     # Calculate the indices where the dot products are to be applied between weights
     # and the image
-    k, i, j = get_im2col_indices(images.shape, filter_shape, padding, stride)
+    k, i, j = get_im2col_indices(images.shape, filter_shape, padding, stride, dilation)
 
     # Get content from image at those indices
     cols = images_padded[:, k, i, j]
@@ -138,7 +138,7 @@ def image_to_column(images, filter_shape, stride, padding, dilation, output_shap
 # TODO: Add dilation
 def column_to_image(cols, images_shape, filter_shape, stride, output_shape='same'):
     batch_size, channels, height, width = images_shape
-    pad_h, pad_w = get_padding(filter_shape, output_shape)
+    pad_h, pad_w = get_padding(filter_shape, output_shape)  # TODO
     height_padded = height + np.sum(pad_h)
     width_padded = width + np.sum(pad_w)
     images_padded = np.empty((batch_size, channels, height_padded, width_padded))
