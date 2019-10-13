@@ -26,13 +26,13 @@ class CrossEntropyLoss(LossFuncBase):
 
     def calc(self, true_value, pred_value):
         num_examples = pred_value.shape[0]
-        loss = np.log(pred_value[range(num_examples), true_value]) / num_examples
+        loss = (1/num_examples) * np.log(pred_value[range(num_examples), true_value])
         return -1. * np.sum(loss)
 
     def derivative(self, true_value, pred_value):
         num_examples = pred_value.shape[0]
         pred_value[range(num_examples), true_value] -= 1
-        pred_value /= num_examples
+        #pred_value /= num_examples
         return pred_value
 
 
@@ -43,13 +43,12 @@ class MeanSquaredErrorLoss(LossFuncBase):
         return pred_value
 
     def calc(self, true_value, pred_value):
-        loss = 0.5 * np.linalg.norm(pred_value-true_value)**2
-        loss /= pred_value.size
+        loss = 1/(2*pred_value.size) * np.linalg.norm(pred_value-true_value)**2
         return loss
 
     def derivative(self, true_value, pred_value):
         diff = pred_value-true_value
-        diff /= pred_value.shape[0]
+        #diff /= pred_value.shape[0]
         return diff
 
 

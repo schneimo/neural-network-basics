@@ -1,12 +1,13 @@
 import numpy as np
 from initializers import get_initializer
 from activations import get_activation
-from utils import image_to_column, column_to_image, determine_padding
+from utils import get_padding, conv2d, image_to_column, column_to_image
 
 
 class Layer:
 
-    def __init__(self, activation, initializer, regularization=0.0):
+    def __init__(self, activation=None, initializer=None, regularization=0.0):
+        self.X = None
         self.train = True
         self._optimizer = None
         self.reg = regularization
@@ -15,6 +16,9 @@ class Layer:
 
     def __call__(self, x):
         return self.forward_pass(x)
+
+    def __repr__(self):
+        raise NotImplementedError
 
     def forward_pass(self, x):
         raise NotImplementedError
@@ -45,15 +49,29 @@ class Flatten(Layer):
     """
     Takes a multidimensional Numpy-Array as input and returns a vectorized form of it
     to pass it to a fully connected/dense layer
-
     """
-    pass
+
+    def __repr__(self):
+        return f"Flattening Layer"
+
+    def __init__(self):
+        super().__init__()
+        self._in_shape = None
+
+    def forward_pass(self, x):
+        self.X = x
+        self._in_shape = x.shape
+        batch_size = x.shape[0]
+        return x.reshape(batch_size, -1)
+
+    def backward_pass(self, dL_dy):
+        return dL_dy.reshape(self._in_shape)
 
 
 class Dense(Layer):
     """
     A regular neural network layer, this means a layer in which every unit is 
-    connected to every unit of the last layer.
+    connected to every unit of the previous layer.
 
     The output is computed as follow:
         z = x dot W + b
@@ -71,13 +89,14 @@ class Dense(Layer):
     """
 
     def __repr__(self):
-        return f"Dense Layer {self.W.shape}"
+        return f"Dense Layer; Shape of weights: {self.W.shape}"
 
-    def __init__(self, input_size, output_size, activation='linear', initializer='glorot', regularization=0.0):
+    def __init__(self, input_size, output_size,
+                 activation='linear', initializer='glorot', regularization=0.0):
         super().__init__(activation=activation, initializer=initializer, regularization=regularization)
         self.b = self._initializer((1, output_size))  # weight shape: (output_size, )
-        self.W = self._initializer((input_size, output_size))  # weight shape: (input_size, output_size)
-        self.X = None  # Placeholder to save the input batch tensor
+        self.W = self._initializer((input_size, output_size))  # weight shape: (input_depth, output_size)
+        #self.X = None  # Placeholder to save the input batch tensor
 
     def forward_pass(self, x):
         self.X = x
@@ -87,9 +106,10 @@ class Dense(Layer):
 
     def backward_pass(self, dL_dy):
         """
+        Computes the backward pass of the layer.
+
         Arguments:
-            dL_dy: Gradient tensor of the next layer
-            lr: Learning rate to use to update weights and biases
+            dL_dy: Gradient tensor of the following layer
         """
         assert self.train, 'Layer not set to train!'
         assert self.X is not None, 'No forward pass before!'
@@ -99,12 +119,20 @@ class Dense(Layer):
         dw += self.reg * self.W
         db += self.reg * self.b
 
-        self.W -= self._optimizer(dw, self.W)
-        self.b -= self._optimizer(db, self.b)
+        m = self.X.shape[0]
+        self.W -= (1/m) * self._optimizer(dw, self.W)
+        self.b -= (1/m) * self._optimizer(db, self.b)
 
         return dx
 
     def gradients(self, dL_dy):
+        """
+        Computes the gradients of the weights, biases und the input
+        w.r.t to the weights, biases and inputs
+
+        Arguments:
+            dL_dy: Gradient tensor of the following layer
+        """
         dL_dz = dL_dy * self._activation.derivative()
         dL_dx = dL_dz @ self.W.T
         dL_dw = self.X.T @ dL_dz
@@ -114,104 +142,178 @@ class Dense(Layer):
 
 class Conv2D(Layer):
 
-    def __init__(self, num_kernels, kernel_shape, stride=1, padding=None, activation='linear', initializer='glorot'):
-        if initializer is None:
-            initializer = None # TODO
-        self.b = np.zeros(num_kernels)
-        self.W = initializer.create(kernel_shape)
-        self.kernel = np.random.random(kernel_shape)
+    def __init__(self, filter_size, num_kernels, input_depth, stride=1, dilation=0, padding='same',
+                 activation='relu', initializer='xavier', regularization=0.0):
+        super().__init__(activation=activation, initializer=initializer, regularization=regularization)
+        self.b = self._initializer((1, num_kernels))
+        kernel_shape = (filter_size, filter_size, input_depth, num_kernels)
+        self.W = self._initializer(kernel_shape)
+        self.pad = get_padding(kernel_shape, padding)  # tuple storing two single tuple
+        self.stride = stride
+        self.dilation = dilation
+
+    def __repr__(self):
+        return f"Convolution Layer; " \
+               f"Kernel shape: {self.W.shape}; " \
+               f"Padding: {self.pad}; " \
+               f"Stride: {self.stride}; " \
+               f"Dilation: {self.dilation}"
     
     def forward_pass(self, x):
         """
-        Convolutional layer with filter size 3x3 and 'same' padding.
-        `x` is a NumPy array of shape [height, width, n_features_in]
-        `weights` has shape [3, 3, n_features_in, n_features_out]
-        `biases` has shape [n_features_out]
-        Return the output of the 3x3 conv (without activation)
+        Returns the output of the convolution after activation
 
-        This is an implementation which should be work similar like TensorFlow. As far as I know it uses
-        a Toeplitz matrix to perform the convolution as a dot product, what is also called im2col.
-        https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/nn/conv2d
-        """
-
-        in_height, in_width, channels = x.shape
-        filter_height, filter_width, n_features_in, n_features_out = weights.shape
-
-        out_height = in_height
-        out_width = in_width
-
-        # padding = "same", this means in_height = out_height & in_width = out_width
-        pad = ((out_height - 1) * stride + filter_height - in_height) // 2
-
-        paddings = np.array([[pad, pad], [pad, pad], [0, 0]])
-        x_padded = np.pad(input, paddings, 'constant')
+        Arguments:
+            `x`: is a NumPy array of shape [batch_size, height, width, n_input_channels]
+        `weights` has shape [filter_height, filter_width, n_features_in, n_features_out]
+        `biases` has shape [n_output_channels]
 
         """
-        From Tensorflow 2 doc: https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/nn/conv2d
-        Given an input tensor of shape [batch, in_height, in_width, in_channels] and a filter / kernel tensor 
-        of shape [filter_height, filter_width, in_channels, out_channels], this op performs the following:
+        #batch_size, in_height, in_width, n_in_channels = x.shape
+        self.X = x
 
-        1. Flattens the filter to a 2-D matrix 
-        with shape [filter_height * filter_width * in_channels, output_channels].
+        z = conv2d(x, self.W, self.b, self.pad, self.stride, self.dilation)
+        y = self._activation.calc(z=z)
+        return y
 
-        2. Extracts image patches from the input tensor to form a virtual tensor of 
-        shape [batch, out_height, out_width, filter_height * filter_width * in_channels].
-
-        3. For each patch, right-multiplies the filter matrix and the image patch vector.
+    def backward_pass(self, dL_dy):
         """
-        # In other words this means:
-        # Calculate and use Toplitz-matrix to perform the convolution as simple dot-product like TF does (im2col).
-        # The convolution/weight tensor gets flattend and from the padded input tensor, we extract so called image patches.
-        # Image patches means, that we take the regions where convolution is performed in the for-loop otherwise and stack
-        # them together into a large vector. To be able to perform a simple dot-product we have to reshape this vector
-        # into a matrix.
+        Computes the backward pass of the layer.
 
-        weights_flat = np.reshape(weights, [filter_height * filter_width * n_features_in, n_features_out])
+        Arguments:
+            dL_dy: Gradient tensor of the following layer
+        """
+        assert self.train, 'Layer not set to train!'
+        assert self.X is not None, 'No forward pass before!'
 
-        windows = []
-        for y in range(out_height):
-            for x in range(out_width):
-                k, l = y * stride, x * stride
-                window = x_padded[k: k + filter_height, l: l + filter_width, :]
-                windows.append(window)
-        stacked = np.stack(windows)
-        x_patched = np.reshape(stacked, [-1, n_features_in * filter_width * filter_height])
+        dx, dw, db = self.gradients(dL_dy)
 
-        result = np.matmul(x_patched, weights_flat) + biases
-        result = np.reshape(result, [out_height, out_width, n_features_out])
-        
-        return result
+        dw += self.reg * self.W
+        db += self.reg * self.b
+
+        m = self.X.shape[0]
+        self.W -= (1/m) * self._optimizer(dw, self.W)
+        self.b -= (1/m) * self._optimizer(db, self.b)
+
+        return dx
+
+    def gradients(self, dL_dy):
+        """
+        Computes the gradients of the weights, biases und the input
+        w.r.t to the weights, biases and inputs
+
+        Arguments:
+            dL_dy: Gradient tensor of the following layer
+        """
+        filter_height, filter_width, in_channels, out_channels = self.W.shape
+        batch_size, out_height, out_width, _ = dL_dy.shape
+
+        # Calculating gradient before activation
+        dL_dz = dL_dy * self._activation.derivative()
+
+        # columnize W, X, and dL_dz
+        W_col = self.W.transpose(3, 2, 0, 1).reshape(out_channels, -1).T
+        x_col, p = image_to_column(self.X, self.W.shape, self.pad, self.stride, self.dilation)
+        dL_dz_col = dL_dz.transpose(3, 1, 2, 0).reshape(out_channels, -1)
+
+        # Calculating gradient dL_dx of input x
+        dL_dx = W_col @ dL_dz_col
+        dL_dx = column_to_image(dL_dx, self.X.shape, self.W.shape, self.pad, self.stride, self.dilation)
+        # reshape columnized dL_dx back into the same format as the input volume
+        dL_dx = dL_dx.transpose(0, 2, 3, 1)
+
+        # Calculating gradient dL_dw of weights W
+        dL_dw = dL_dz_col @ x_col.T
+        dL_dw = dL_dw.reshape(out_channels, in_channels, filter_height, filter_width)
+        dL_dw = dL_dw.transpose(2, 3, 1, 0)
+
+        # Calculating gradient dL_db of bias b
+        dL_db = np.sum(dL_dz_col, axis=1)
+        dL_db = dL_db.reshape(1, 1, 1, -1)
+
+        return dL_dx, dL_dw, dL_db
 
 
-class MaxPool(Layer):
+class MaxPool2D(Layer):
 
-    def __init__(self, pool_size, stride):
+    def __init__(self, pool_size, stride=1, padding='same'):
+        self.X = None
+        self.train = True
         self.stride = stride
         self.pool_size = pool_size
-        pass
+        self.padding = get_padding((pool_size, pool_size), padding)
+
+    def __repr__(self):
+        return f"MaxPool Layer; " \
+               f"Pool shape: {self.pool_size}; " \
+               f"Stride: {self.stride}"
 
     def forward_pass(self, x):
-        """Max pooling with pool size 2x2 and stride 2.
-        `input` is a numpy array of shape [height, width, n_features]
         """
-        input_height, input_width, channels = x.shape
+        Max pooling
+
+        Arguments:
+            `x` is a numpy array of shape [batch_size, height, width, n_features]
+        """
+        batch_size, input_height, input_width, in_channels = x.shape
 
         output_height = (input_height - self.pool_size)//self.stride + 1
         output_width = (input_width - self.pool_size)//self.stride + 1
 
-        result = np.zeros((output_height, output_width, channels))
-        for c in range(channels):
+        result = np.zeros((batch_size, output_height, output_width, in_channels))
+        # TODO: Refactor to more efficient method instead of naive one
+        for m in range(batch_size):
             for i in range(output_height):
                 for j in range(output_width):
-                    k, l = i*stride, j*stride
-                    result[i, j, c] = input[k: (k + self.pool_size), l: (l + self.pool_size), c].max()
+                    for c in range(in_channels):
+                        k, l = i * self.stride, j * self.stride
+                        result[m, i, j, c] = np.max(x[m, k:(k + self.pool_size), l: (l + self.pool_size), c])
 
         return result
 
+    def backward_pass(self, dL_dy):
+        # TODO
+        pass
 
-class AveragePool(Layer):
 
-    def __init__(self):
+class AveragePool2D(Layer):
+
+    def __repr__(self):
+        return f"MaxPool Layer; " \
+               f"Pool shape: {self.pool_size}; " \
+               f"Stride: {self.stride}"
+
+    def __init__(self, pool_size, stride):
+        self.X = None
+        self.train = True
+        self.stride = stride
+        self.pool_size = pool_size
+
+    def forward_pass(self, x):
+        """
+        Average pooling
+
+        Arguments:
+            `x` is a numpy array of shape [batch_size, height, width, n_features]
+        """
+        self.X = x
+        batch_size, input_height, input_width, in_channels = x.shape
+
+        output_height = (input_height - self.pool_size) // self.stride + 1
+        output_width = (input_width - self.pool_size) // self.stride + 1
+
+        result = np.zeros((batch_size, output_height, output_width, in_channels))
+        # TODO: Refactor to more efficient method instead of naive one
+        for m in range(batch_size):
+            for i in range(output_height):
+                for j in range(output_width):
+                    for c in range(in_channels):
+                        k, l = i * self.stride, j * self.stride
+                        result[m, i, j, c] = np.average(x[m, k:(k + self.pool_size), l: (l + self.pool_size), c])
+
+        return result
+
+    def backward_pass(self, dL_dy):
         pass
 
 

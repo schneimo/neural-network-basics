@@ -2,20 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="54fbd387-6f1f-4ae5-b142-eef402b62e6a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/initializers/initializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/SimpleNeuralNetwork.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/activations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/activations/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/activations/activations.py" beforeDir="false" afterPath="$PROJECT_DIR$/activations/activations.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/initializer/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/initializers/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/initializer/initializers.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/layers/layers.py" beforeDir="false" afterPath="$PROJECT_DIR$/layers/layers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/loss/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/loss/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/loss/loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/loss/loss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/TestModel.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/TestModel.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/autograd.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/ops.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/ops.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -52,7 +43,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="MTConfigurable" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -71,7 +62,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Python.conv_mnist_classification">
     <configuration name="TestModel" type="PythonConfigurationType" factoryName="Python">
       <module name="Neural-Network-Basics" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -94,6 +85,79 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="basic_classification" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Neural-Network-Basics" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/basic_classification.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="basic_regression" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Neural-Network-Basics" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/basic_regression.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="conv_mnist_classification" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <module name="Neural-Network-Basics" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/examples" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/examples/conv_mnist_classification.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.conv_mnist_classification" />
+        <item itemvalue="Python.basic_classification" />
+        <item itemvalue="Python.basic_regression" />
+      </list>
+    </recent_temporary>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -119,6 +183,15 @@
       <workItem from="1569955424071" duration="3888000" />
       <workItem from="1569961412053" duration="554000" />
       <workItem from="1570092790069" duration="10948000" />
+      <workItem from="1570705369664" duration="15000" />
+      <workItem from="1570705397193" duration="806000" />
+      <workItem from="1570808012306" duration="77000" />
+      <workItem from="1570808102583" duration="5927000" />
+      <workItem from="1570872631403" duration="39000" />
+      <workItem from="1570874943020" duration="323000" />
+      <workItem from="1570876476188" duration="3795000" />
+      <workItem from="1570962796487" duration="7907000" />
+      <workItem from="1571003099750" duration="1253000" />
     </task>
     <task id="LOCAL-00001" summary="Update">
       <created>1547676349628</created>
@@ -154,6 +227,11 @@
     <option name="LAST_COMMIT_MESSAGE" value="Update" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Neural_Network_Basics$test.coverage" NAME="test Coverage Results" MODIFIED="1570699364003" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
+    <SUITE FILE_PATH="coverage/Neural_Network_Basics$conv_mnist_classification.coverage" NAME="conv_mnist_classification Coverage Results" MODIFIED="1570972251329" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
     <SUITE FILE_PATH="coverage/Neural_Network_Basics$TestModel.coverage" NAME="TestModel Coverage Results" MODIFIED="1570143352041" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Neural_Network_Basics$basic_classification.coverage" NAME="basic_classification Coverage Results" MODIFIED="1570880719167" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
+    <SUITE FILE_PATH="coverage/Neural_Network_Basics$basic_model.coverage" NAME="basic_model Coverage Results" MODIFIED="1570703532565" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
+    <SUITE FILE_PATH="coverage/Neural_Network_Basics$basic_regression.coverage" NAME="basic_regression Coverage Results" MODIFIED="1570880362009" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/examples" />
   </component>
 </project>
