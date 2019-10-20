@@ -18,7 +18,7 @@ class Initializer(object):
 class Xavier(Initializer):
 
     def __call__(self, shape):
-        fan_in, fan_out = shape
+        fan_in, fan_out = get_fan(shape)
         b = np.sqrt(6/(fan_in + fan_out))
         return np.random.uniform(-b, b, size=shape)
 
@@ -27,9 +27,23 @@ class Xavier(Initializer):
 class He(Initializer):
 
     def __call__(self, shape):
-        fan_in, _ = shape
+        fan_in, _ = get_fan(shape)
         b = np.sqrt(6/fan_in)
         return np.random.uniform(-b, b, size=shape)
+
+
+def get_fan(shape):
+    if len(shape) == 2:
+        fan_in, fan_out = shape
+    elif len(shape) in [3, 4]:
+        in_channels, out_channels = shape[2:]
+        filter_lengths = shape[:2]
+        filter_size = np.prod(filter_lengths)
+        fan_in = in_channels * filter_size
+        fan_out = out_channels * filter_size
+    else:
+        raise ValueError("Unrecognized weight dimension: {}".format(shape))
+    return fan_in, fan_out
 
 
 def get_initializer(name):
@@ -49,5 +63,7 @@ def get_initializer(name):
         return name
     elif name in mapping:
         return mapping[name]()
+    elif name is None:
+        return None
     else:
-        raise ValueError('Unknown initializers type: {}'.format(name))
+        raise ValueError('Unknown initializer type: {}'.format(name))

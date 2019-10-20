@@ -22,16 +22,17 @@ class LossFuncBase:
 class CrossEntropyLoss(LossFuncBase):
 
     def pred(self, pred_value):
-        return softmax(pred_value)
+        probs = softmax(pred_value)
+        return probs
 
     def calc(self, true_value, pred_value):
         num_examples = pred_value.shape[0]
-        loss = (1/num_examples) * np.log(pred_value[range(num_examples), true_value])
-        return -1. * np.sum(loss)
+        loss = (1/num_examples) * np.sum(np.log(pred_value[range(num_examples), true_value]))
+        return -1. * loss
 
     def derivative(self, true_value, pred_value):
         num_examples = pred_value.shape[0]
-        pred_value[range(num_examples), true_value] -= 1
+        pred_value[range(num_examples), true_value] -= 1  #TODO: pred_value is changed here! Own variable
         #pred_value /= num_examples
         return pred_value
 

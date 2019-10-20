@@ -1,7 +1,7 @@
 import numpy as np
 from initializers import get_initializer
 from activations import get_activation
-from utils import get_padding, conv2d, image_to_column, column_to_image
+from utils import *
 
 
 class Layer:
@@ -9,7 +9,6 @@ class Layer:
     def __init__(self, activation=None, initializer=None, regularization=0.0):
         self.X = None
         self.train = True
-        self._optimizer = None
         self.reg = regularization
         self.add_activation(activation)
         self.add_initializer(initializer)
@@ -26,7 +25,7 @@ class Layer:
     def backward_pass(self, dL_dy):
         raise NotImplementedError
 
-    def gradients(self, dL_dy):
+    def _gradients(self, dL_dy):
         raise NotImplementedError
 
     def set_train(self):
@@ -75,10 +74,10 @@ class Dense(Layer):
 
     The output is computed as follow:
         z = x dot W + b
-        y = activation(z)
+        true_val = activation(z)
 
         x should have shape of (batch_size, #inputs == #units)
-        y should have shape of (batch_size, #outputs)
+        true_val should have shape of (batch_size, #outputs)
 
 
     Arguments:
@@ -100,7 +99,7 @@ class Dense(Layer):
 
     def forward_pass(self, x):
         self.X = x
-        z = self.X @ self.W + self.b
+        z = x @ self.W + self.b
         y = self._activation.calc(z=z)
         return y
 
@@ -114,18 +113,18 @@ class Dense(Layer):
         assert self.train, 'Layer not set to train!'
         assert self.X is not None, 'No forward pass before!'
 
-        dx, dw, db = self.gradients(dL_dy)
+        dx, dw, db = self._gradients(dL_dy)
 
         dw += self.reg * self.W
         db += self.reg * self.b
 
         m = self.X.shape[0]
-        self.W -= (1/m) * self._optimizer(dw, self.W)
-        self.b -= (1/m) * self._optimizer(db, self.b)
+        self.W -= self._optimizer(dw, self.W)# * (1/m)
+        self.b -= self._optimizer(db, self.b)# * (1/m)
 
         return dx
 
-    def gradients(self, dL_dy):
+    def _gradients(self, dL_dy):
         """
         Computes the gradients of the weights, biases und the input
         w.r.t to the weights, biases and inputs
@@ -145,7 +144,7 @@ class Conv2D(Layer):
     def __init__(self, filter_size, num_kernels, input_depth, stride=1, dilation=0, padding='same',
                  activation='relu', initializer='xavier', regularization=0.0):
         super().__init__(activation=activation, initializer=initializer, regularization=regularization)
-        self.b = self._initializer((1, num_kernels))
+        self.b = self._initializer((1, 1, 1, num_kernels))
         kernel_shape = (filter_size, filter_size, input_depth, num_kernels)
         self.W = self._initializer(kernel_shape)
         self.pad = get_padding(kernel_shape, padding)  # tuple storing two single tuple
@@ -187,18 +186,18 @@ class Conv2D(Layer):
         assert self.train, 'Layer not set to train!'
         assert self.X is not None, 'No forward pass before!'
 
-        dx, dw, db = self.gradients(dL_dy)
+        dx, dw, db = self._gradients(dL_dy)
 
         dw += self.reg * self.W
         db += self.reg * self.b
 
         m = self.X.shape[0]  # Determine batch size
-        self.W -= (1/m) * self._optimizer(dw, self.W)
-        self.b -= (1/m) * self._optimizer(db, self.b)
+        self.W -= self._optimizer(dw, self.W) * (1/m)
+        self.b -= self._optimizer(db, self.b) * (1/m)
 
         return dx
 
-    def gradients(self, dL_dy):
+    def _gradients(self, dL_dy):
         """
         Computes the gradients of the weights, biases und the input
         w.r.t to the weights, biases and inputs
@@ -217,22 +216,24 @@ class Conv2D(Layer):
 
         # columnize W, X, and dL_dz
         W_col = self.W.transpose(3, 2, 0, 1).reshape(out_channels, -1).T
-        x_col, p = image_to_column(self.X, self.W.shape, self.pad, self.stride, self.dilation)
+        x_reshaped = self.X.transpose(0, 3, 1, 2)
+        x_col = image_to_column(x_reshaped, self.W.shape, self.stride, self.pad, self.dilation)
         dL_dz_col = dL_dz.transpose(3, 1, 2, 0).reshape(out_channels, -1)
 
         # Calculating gradient dL_dx of input x
         dL_dx = W_col @ dL_dz_col
-        dL_dx = column_to_image(dL_dx, self.X.shape, self.W.shape, self.pad, self.stride, self.dilation)
+        dL_dx = column_to_image(dL_dx, self.X.shape, self.W.shape, self.stride, self.pad, self.dilation)
         dL_dx = dL_dx.transpose(0, 2, 3, 1)
 
         # Calculating gradient dL_dw of weights W
         dL_dw = dL_dz_col @ x_col.T
-        dL_dw = dL_dw.reshape(out_channels, in_channels, filter_height, filter_width)
+        dL_dw = dL_dw.reshape(out_channels, in_channels, filter_height, filter_width) #(filter_height, filter_width, input_depth, num_kernels)
+        #filter_height, in_channels, filter_width, out_channels,
         dL_dw = dL_dw.transpose(2, 3, 1, 0)
 
         # Calculating gradient dL_db of bias b
-        dL_db = np.sum(dL_dz_col, axis=1)
-        dL_db = dL_db.reshape(1, 1, 1, -1)
+        dL_db = np.sum(dL_dz_col, axis=1)#np.sum(dL_dz_col, axis=1)
+        dL_db = dL_db.reshape(1, 1, 1, -1)#dL_db.reshape(1, -1)
 
         return dL_dx, dL_dw, dL_db
 
@@ -248,7 +249,7 @@ class MaxPool2D(Layer):
 
     def __repr__(self):
         return f"MaxPool Layer; " \
-               f"Pool shape: {self.pool_size}; " \
+               f"Pool shape: {self.pool_size}x{self.pool_size}; " \
                f"Stride: {self.stride}"
 
     def forward_pass(self, x):
@@ -258,9 +259,19 @@ class MaxPool2D(Layer):
         Arguments:
             `x` is a numpy array of shape [batch_size, height, width, n_features]
         """
+        self.X = x
+        out, self.X_col, self.X_argmax = pool(x, np.max, self.pool_size, self.padding, self.stride)
+        return out
+
+    def forward_pass_naive(self, x):
+        """
+        Max pooling
+
+        Arguments:
+            `x` is a numpy array of shape [batch_size, height, width, n_features]
+        """
         # TODO: Add more comments
         # TODO: Testing
-
         batch_size, input_height, input_width, in_channels = x.shape
 
         output_height = (input_height - self.pool_size)//self.stride + 1
@@ -278,8 +289,41 @@ class MaxPool2D(Layer):
         return result
 
     def backward_pass(self, dL_dy):
-        # TODO
-        pass
+        batch_size, in_height, in_width, channels = self.X.shape
+        pool_height, pool_width = (self.pool_size, self.pool_size)
+        stride = self.stride
+        padding = self.padding
+
+        out_height = (in_height - pool_height) // stride + 1
+        out_width = (in_width - pool_width) // stride + 1
+
+        # [batch_size, height, width, n_features]
+        #x_split = self.X.transpose(0, 2, 3, 1)  # Transpose so that we got shape=(batch_size, channels, in_height, in_width)
+        #x_split = self.X.transpose(0, 3, 1, 2)
+        #x_split = x_split.reshape(batch_size * channels, 1, in_height, in_width)
+        #x_cols = image_to_column(x_split,
+        #                         filter_shape=(pool_height, pool_width),
+        #                         stride=stride,
+        #                         padding=padding,
+        #                         dilation=0)
+        #x_cols_argmax = np.argmax(x_cols, axis=0)
+        #x_cols_max = x_cols[x_cols_argmax, np.arange(x_cols.shape[1])]
+        #x_cols_max = x_cols[x_cols_argmax, range(x_cols_argmax.size)]
+
+        #dL_dx = x_cols_max.reshape(in_height, in_width, batch_size, channels)
+        #dL_dx = dL_dx.transpose(2, 0, 1, 3) #dL_dx.transpose(2, 0, 1, 3)
+
+        # N, C, H, W --> H, W, N, C (CS)
+        # N, H, W, C --> H, W, N, C (me)
+        dout_reshaped = dL_dy.transpose(1, 2, 0, 3).flatten()
+        dx_cols = np.zeros_like(self.X_col)
+        dx_cols[self.X_argmax, np.arange(dx_cols.shape[1])] = dout_reshaped
+        dL_dx = column_to_image(dx_cols, (batch_size * channels, 1, in_height, in_width), (pool_height, pool_width),
+                                stride, padding)
+        dL_dx = dL_dx.reshape((batch_size, channels, in_height, in_width))
+        dL_dx = dL_dx.transpose(0, 2, 3, 1)
+
+        return dL_dx
 
 
 class AveragePool2D(Layer):
@@ -326,15 +370,68 @@ class AveragePool2D(Layer):
         # TODO
         pass
 
-# TODO
-class BatchNorm2D(Layer):
-
-    def __init__(self):
-        pass
 
 # TODO
-class BatchNorm3D(Layer):
+class BatchNorm(Layer):
 
-    def __init__(self):
-        pass
+    def __init__(self, input_size, output_size,
+                 activation='linear', initializer='xavier', regularization=0.0):
+        super().__init__(activation=activation, initializer=initializer, regularization=regularization)
+        self.beta = self._initializer((1, output_size))  # weight shape: (output_size, )
+        self.gamma = self._initializer((input_size, output_size))  # weight shape: (input_depth, output_size)
+        self.mu_cache = list()
+        self.sig_cache = list()
+        self.mu_inference = 0
+        self.sig_inference = 0
+
+    def forward_pass(self, x):
+        self.X = x
+        if self.train:
+            mu = np.mean(x, axis=0)
+            sig = np.var(x, axis=0)
+            self.mu_cache.append(mu)
+            self.sig_cache.append(sig)
+            self.mu_inference = incremental_mean(self.mu_inference, mu, len(self.mu_cache))
+            self.sig_inference = incremental_mean(self.sig_inference, sig, len(self.sig_cache))
+        else:
+            # If we are in inference/testing mode, we must use derived mean and variance,
+            # since no mini batches are available anymore.
+            mu = self.mu_inference
+            sig = self.sig_inference
+
+        x_norm = (x - mu) / np.sqrt(sig + 1e-8)
+        out = self.gamma * x_norm + self.beta
+
+        return out
+
+    def backward_pass(self, dL_dy):
+        """
+        Computes the backward pass of the layer.
+
+        Arguments:
+            dL_dy: Gradient tensor of the following layer
+        """
+        assert self.train, 'Layer not set to train!'
+        assert self.X is not None, 'No forward pass before!'
+
+        dx, dw, db = self._gradients(dL_dy)
+
+        dw += self.reg * self.gamma
+        db += self.reg * self.beta
+
+        m = self.X.shape[0]  # Determine batch size
+        self.gamma -= (1 / m) * self._optimizer(dw, self.W)
+        self.beta -= (1 / m) * self._optimizer(db, self.b)
+
+        return dx
+
+    def _gradients(self, dL_dy):
+        dL_dz = dL_dy * self._activation.derivative()
+        dL_dx = dL_dz @ self.gamma.T
+        dL_dw = self.X.T @ dL_dz
+        dL_db = np.sum(dL_dz, axis=0, keepdims=True)
+        return dL_dx, dL_dw, dL_db
+
+
+
 

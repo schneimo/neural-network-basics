@@ -90,5 +90,7 @@ def get_activation(name):
     elif name in mapping:
         obj = mapping[name]()
         return obj
+    elif name is None:
+        return None
     else:
         raise ValueError('Unknown initializers type: {}'.format(name))

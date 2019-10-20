@@ -43,7 +43,7 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
     ax.plot(x_pts, y_pts)
     ax.plot(x_pts, prediction)
-    ax.set(xlabel='x', ylabel='y', title='sin(x)')
+    ax.set(xlabel='x', ylabel='true_val', title='sin(x)')
     ax.grid()
     plt.show()
     #fig.savefig('results/basic_regression_result.png')

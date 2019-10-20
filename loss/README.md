@@ -1,6 +1,6 @@
 # Loss functions
 ## Done
-- Cross entropy
+- Categorical Cross entropy
 - Mean Squared Error
 
 ## WIP
