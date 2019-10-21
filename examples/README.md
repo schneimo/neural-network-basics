@@ -35,11 +35,13 @@ Results:
 | --- |
 | ![Loss](results/conv_mnist_classification_full_vis_pred.png) |
 
-| Epoch 1 | Train Loss: 0.9847 | Train Accuracy: 78.201% | Test Loss: 0.4840 | Test Accuracy: 89.682% | 
-| Epoch 2 | Train Loss: 0.4109 | Train Accuracy: 89.858% | Test Loss: 0.3311 | Test Accuracy: 91.688% | 
-| Epoch 3 | Train Loss: 0.3113 | Train Accuracy: 91.708% | Test Loss: 0.2711 | Test Accuracy: 92.980% | 
-| Epoch 4 | Train Loss: 0.2669 | Train Accuracy: 92.589% | Test Loss: 0.2323 | Test Accuracy: 93.760% | 
-| Epoch 5 | Train Loss: 0.2388 | Train Accuracy: 93.271% | Test Loss: 0.2119 | Test Accuracy: 94.189% | 
+| Epoch | Train Loss | Train Accuracy | Test Loss | Test Accuracy |
+| --- | --- | --- | --- | --- |
+| 1 | 0.9847 | 78.201% | 0.4840 | 89.682% | 
+| 2 | 0.4109 | 89.858% | 0.3311 | 91.688% | 
+| 3 | 0.3113 | 91.708% | 0.2711 | 92.980% | 
+| 4 | 0.2669 | 92.589% | 0.2323 | 93.760% | 
+| 5 | 0.2388 | 93.271% | 0.2119 | 94.189% | 
 
 ### Small training (simple)
 The simpler version of the script, enables training on a specified number of iterations on the shuffled dataset with minibatches. 
