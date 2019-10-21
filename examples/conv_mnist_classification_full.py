@@ -84,10 +84,11 @@ if __name__ == '__main__':
         test_batches = create_minibatches(X_test, y_test, BATCH_SIZE)
         test_loss = list()
         test_accuracy = list()
-        for batch_x, batch_y in tqdm(test_batches):
-            predictions = model(batch_x)
-            loss, accuracy = model.loss(batch_x, batch_y)
+        for (batch_x, batch_y) in tqdm(test_batches):
+            predictions = model.predict(batch_x)
+            loss, accuracy = model.loss(predictions, batch_y)
             test_loss.append(loss)
+            test_accuracy.append(accuracy)
 
         template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
         print(template.format(epoch + 1,
