@@ -227,7 +227,7 @@ class Conv2D(Layer):
 
         # Calculating gradient dL_dw of weights W
         dL_dw = dL_dz_col @ x_col.T
-        dL_dw = dL_dw.reshape(out_channels, in_channels, filter_height, filter_width) #(filter_height, filter_width, input_depth, num_kernels)
+        dL_dw = dL_dw.reshape(out_channels, in_channels, filter_height, filter_width)
         #filter_height, in_channels, filter_width, out_channels,
         dL_dw = dL_dw.transpose(2, 3, 1, 0)
 
@@ -297,24 +297,6 @@ class MaxPool2D(Layer):
         out_height = (in_height - pool_height) // stride + 1
         out_width = (in_width - pool_width) // stride + 1
 
-        # [batch_size, height, width, n_features]
-        #x_split = self.X.transpose(0, 2, 3, 1)  # Transpose so that we got shape=(batch_size, channels, in_height, in_width)
-        #x_split = self.X.transpose(0, 3, 1, 2)
-        #x_split = x_split.reshape(batch_size * channels, 1, in_height, in_width)
-        #x_cols = image_to_column(x_split,
-        #                         filter_shape=(pool_height, pool_width),
-        #                         stride=stride,
-        #                         padding=padding,
-        #                         dilation=0)
-        #x_cols_argmax = np.argmax(x_cols, axis=0)
-        #x_cols_max = x_cols[x_cols_argmax, np.arange(x_cols.shape[1])]
-        #x_cols_max = x_cols[x_cols_argmax, range(x_cols_argmax.size)]
-
-        #dL_dx = x_cols_max.reshape(in_height, in_width, batch_size, channels)
-        #dL_dx = dL_dx.transpose(2, 0, 1, 3) #dL_dx.transpose(2, 0, 1, 3)
-
-        # N, C, H, W --> H, W, N, C (CS)
-        # N, H, W, C --> H, W, N, C (me)
         dout_reshaped = dL_dy.transpose(1, 2, 0, 3).flatten()
         dx_cols = np.zeros_like(self.X_col)
         dx_cols[self.X_argmax, np.arange(dx_cols.shape[1])] = dout_reshaped

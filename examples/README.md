@@ -31,7 +31,7 @@ Results:
 | --- | --- |
 | ![Loss](results/conv_mnist_classification_full_loss.png) | ![Accuracy](results/conv_mnist_classification_full_acc.png) |
 
-| Example prediction |
+| Example predictions |
 | --- |
 | ![Loss](results/conv_mnist_classification_full_vis_pred.png) |
 
@@ -53,6 +53,6 @@ Results:
 | --- | --- |
 | ![Loss](results/conv_mnist_classification_simple_loss.png) | ![Accuracy](results/conv_mnist_classification_simple_acc.png) |
 
-| Example prediction |
+| Example predictions |
 | --- |
 | ![Loss](results/conv_mnist_classification_simple_vis_pred.png) |
