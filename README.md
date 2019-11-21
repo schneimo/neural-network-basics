@@ -27,6 +27,7 @@ The following scripts are basic tasks, which can be solved by the neural network
 - [Basic regression with a FCN](basic_classification.py)
 - [MNIST classification with a CNN (full dataset)](conv_mnist_classification_full.py)
 - [MNIST classification with a CNN (specific iterations)](conv_mnist_classification_simple.py)
+
 To reproduce, simply run the scripts. But be *warned*, that some of the tasks may take a while to complete.
 
 ## Results of the example tasks
