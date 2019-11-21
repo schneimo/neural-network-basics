@@ -20,7 +20,7 @@ This repo contains a basic implementation of a neural network for own learning p
 - Unpooling
 
 ## Examples
-The following scripts are basic tasks, which can be solved by the neural network:
+In the following scripts are basic example tasks, which can be solved by the neural network:
 - [Basic classification with a FCN](basic_classification.py)
 - [Basic regression with a FCN](basic_classification.py)
 - [MNIST classification with a CNN (full dataset)](conv_mnist_classification_full.py)
