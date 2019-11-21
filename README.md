@@ -2,14 +2,16 @@
 This repo contains a basic implementation of a neural network for own learning purposes implemented completely in numpy. This means, that the implementation is not as efficient as other libraries of course, but should implement some important papers in an intuitive and easy to read way.
 
 ## Done
-- Fully Connected Layer
-- Initializations, Activations, Loss-functions
+- Fully-connected layer
+- Initializations (Xavier, He)
+- Activations (ReLu, Tanh, Sigmoid)
+- Loss-functions (Cross entropy, MSE)
 - SGD
-- Convolutional Layers (2D)
+- Convolutional layer (2D)
 - Max-Pooling (2D)
 
 ## WIP
-- AdaGrad, RMSProp, Adam, Lazy-Adam
+- More optimizers: AdaGrad, RMSProp, Adam, Lazy-Adam
 - Average-Pooling
 - Batch-Norm, Layer-Norm
 - Dropout
