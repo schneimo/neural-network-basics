@@ -28,7 +28,7 @@ In the following scripts are basic example tasks, which can be solved by the neu
 - [MNIST classification with a CNN (full dataset)](conv_mnist_classification_full.py)
 - [MNIST classification with a CNN (specific iterations)](conv_mnist_classification_simple.py)
 
-To reproduce, simply run the scripts. But be *warned*, that some of the tasks may take a while to complete.
+To reproduce simply run the scripts. But be *warned* that some of the tasks may take a while to complete.
 
 ### Results of the example tasks
 
