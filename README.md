@@ -1,5 +1,5 @@
 # Neural Network Basics
-This repo contains a basic implementation of a neural network for own learning purposes implemented completely in numpy. This means, that the implementation is not as efficient as other libraries of course, but should implement some important papers in an intuitive and easy to read way.
+This repo contains a basic implementation of a neural network for own learning purposes implemented completely with NumPy. This means that the implementation is not as efficient as other libraries of course, but should implement some important papers in an intuitive and easy to read way.
 
 ## Done
 - Fully-connected layer
