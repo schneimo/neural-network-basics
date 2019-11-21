@@ -24,10 +24,10 @@ if __name__ == '__main__':
         x_pts = np.random.rand(1000, 1) * 10
         y_pts = np.sin(x_pts)
         # Training the network and observing the loss
-        loss = model.train(x_pts, y_pts)
+        loss, _ = model.train(x_pts, y_pts)
 
         if i % 10000 == 0:
-            print("iteration %d: loss %f" % (i, loss))
+            print(f"Iteration {i}: loss {loss}")
 
     model.set_eval()
 

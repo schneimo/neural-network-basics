@@ -48,11 +48,11 @@ if __name__ == '__main__':
     # Training
     for i in range(10000):
         # Training the network and observing the loss
-        loss = model.train(X, y)
+        loss, acc = model.train(X, y)
 
         # Print loss every 1000 iteration
         if i % 1000 == 0:
-            print("Iteration %d: loss %f" % (i, loss))
+            print(f"Iteration {i}: loss {loss}, accuracy {acc}")
 
     model.set_eval()
 

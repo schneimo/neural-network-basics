@@ -123,5 +123,5 @@ if __name__ == '__main__':
         if j % 5 == 0:
             i += 1
             j = 0
-    plt.savefig('results/conv_mnist_classification_simple_vis_pred.png')
+    #plt.savefig('results/conv_mnist_classification_simple_vis_pred.png')
     plt.show()

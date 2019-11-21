@@ -119,8 +119,8 @@ class Dense(Layer):
         db += self.reg * self.b
 
         m = self.X.shape[0]
-        self.W -= self._optimizer(dw, self.W)# * (1/m)
-        self.b -= self._optimizer(db, self.b)# * (1/m)
+        self.W -= self._optimizer(dw, self.W) * (1/m)
+        self.b -= self._optimizer(db, self.b) * (1/m)
 
         return dx
 
@@ -353,7 +353,6 @@ class AveragePool2D(Layer):
         pass
 
 
-# TODO
 class BatchNorm(Layer):
 
     def __init__(self, input_size, output_size,
